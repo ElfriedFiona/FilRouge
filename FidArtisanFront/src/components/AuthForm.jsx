@@ -75,7 +75,7 @@ const AuthForm = () => {
       } else if (user.role === "client") {
         navigate("/client");
       } else {
-        navigate(`/artisan/${user.artisan.id}`);
+        navigate(`/artisandash/${user.artisan.id}`);
       }
     } catch (err) {
       console.error("Erreur login:", err.response);

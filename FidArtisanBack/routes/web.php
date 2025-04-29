@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,3 +34,17 @@ Route::get('/migrate-client-to-user', function () {
     return 'Migration terminée';
 });
 
+Route::get('/uploads/{filename}', function ($filename) {
+    $path = storage_path('app/public/uploads/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $file = file_get_contents($path);
+    $type = mime_content_type($path);
+
+    return response($file, 200)
+            ->header('Content-Type', $type)
+            ->header('Access-Control-Allow-Origin', '*');
+});

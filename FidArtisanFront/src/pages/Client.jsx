@@ -1,5 +1,5 @@
 import React from 'react';
-import { Header } from '../components/ClientHeader';
+import Header from '../components/Header';
 import { ProfilePage } from '../components/ProfilePage';
 export function Client() {
   return <div >

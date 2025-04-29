@@ -13,6 +13,8 @@ import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ArtisanList from "./pages/ArtisanList";
 import  ArtisanProfile  from "./pages/ProfileArtisan";
+import RequestServicePage from "./pages/RequestServicePage";
+import ArtisanDashboard from "./pages/Artisan";
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/resultats" element={<ArtisanList/>} />
         <Route path="/artisan/:id" element={<ArtisanProfile/>} />
+        <Route path="/serviceclient" element={<RequestServicePage/>} />
+        <Route path="artisandash/:id" element={<ArtisanDashboard/>} />
         <Route
           path="/admin"
           element={

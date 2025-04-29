@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 const CallToActionSection = () => {
   return <section className="w-full bg-gray-50 py-12 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -6,9 +7,11 @@ const CallToActionSection = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
             Prêt à engager un artisan ?
           </h2>
+          <a href='#search'>
           <button className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-md text-sm font-medium transition duration-150">
             Rechercher Un Artisan
           </button>
+          </a>
         </div>
         <div className="mt-16 bg-white rounded-lg shadow-md overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2">

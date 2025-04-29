@@ -75,6 +75,7 @@ Route::post('/email/resend', function (Request $request) {
 Route::get('/artisans/search', [ArtisanController::class, 'search']);
 Route::get('/artisans/{artisan}/profil', [ArtisanController::class, 'showFullProfile']);
 Route::get('/artisan/{artisanId}/languages', [ArtisanController::class, 'getLanguages']);
+Route::get('/villes', [VilleController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -102,7 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/artisans/ville/{villeId}', [ArtisanController::class, 'filterByVille']);
     Route::get('/artisans/{id}/annonces', [ArtisanController::class, 'annoncesParArtisan']);
 
-    Route::get('/villes', [VilleController::class, 'index']);
+    
 
     // Annonces
     Route::apiResource('annonces', AnnonceController::class);
@@ -151,7 +152,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::apiResource('/services', ServiceController::class);
-Route::get('/services/user/{id}', [ServiceController::class, 'getByClient']);
+Route::get('/services/user/{id}', [ServiceController::class, 'getByUser']);
 Route::get('/services/artisan/{id}', [ServiceController::class, 'getByArtisan']);
 
 

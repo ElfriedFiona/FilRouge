@@ -11,6 +11,7 @@ import React, { useEffect, useState } from 'react';
  import {ExperienceSection} from '../components/ExperienceSection';
  import ReviewsSection     from '../components/ReviewsSection';
  import {LanguagesSection } from '../components/LanguagesSection';
+import Layout from './Layout';
 
  export default function ArtisanProfile() {
   const { id } = useParams();
@@ -177,6 +178,7 @@ import React, { useEffect, useState } from 'react';
 
 
   return (
+    <Layout>
     <div className="container mx-auto px-4 py-6 max-w-5xl space-y-6">
       <div className="bg-white rounded-lg shadow overflow-hidden mb-5">
         <div className="h-40 bg-gradient-to-r from-blue-400 to-blue-600" />
@@ -317,5 +319,6 @@ import React, { useEffect, useState } from 'react';
 
 
     </div>
+    </ Layout>
   );
  }

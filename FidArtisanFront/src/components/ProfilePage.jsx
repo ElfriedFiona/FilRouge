@@ -49,7 +49,7 @@ export function ProfilePage() {
             client?.photo?.startsWith('http')
               ? client.photo
               : client?.photo
-              ? `http://127.0.0.1:8000/storage/uploads/${client.photo}`
+              ? `http://127.0.0.1:8000/${client.photo}`
               : 'https://via.placeholder.com/150';
 
           setProfileData({

@@ -154,29 +154,25 @@ public function showFullProfile(Artisan $artisan)
 public function search(Request $request)
 {
     $keyword = $request->query('q');
+    $ville   = $request->query('ville');
 
-    if (!$keyword) {
-        return response()->json(['message' => 'Veuillez fournir un mot-clé de recherche.'], 400);
-    }
+    $query = Artisan::with(['user','profession','ville'])
+        ->when($keyword, fn($q) => 
+            $q->whereHas('user', fn($q2)=> $q2->where('name','like',"%{$keyword}%"))
+              ->orWhereHas('profession', fn($q2)=> $q2->where('nom','like',"%{$keyword}%"))
+        )
+        ->when($ville, fn($q)=> 
+            $q->whereHas('ville', fn($q2)=> $q2->where('nom','like',"%{$ville}%"))
+        );
 
-    $artisans = Artisan::with(['user', 'profession', 'ville'])
-        ->whereHas('user', function ($query) use ($keyword) {
-            $query->where('name', 'like', "%{$keyword}%");
-        })
-        ->orWhereHas('profession', function ($query) use ($keyword) {
-            $query->where('nom', 'like', "%{$keyword}%");
-        })
-        ->orWhereHas('ville', function ($query) use ($keyword) {
-            $query->where('nom', 'like', "%{$keyword}%");
-        })
-        ->get();
+    $artisans = $query->get();
 
     if ($artisans->isEmpty()) {
         return response()->json(['message' => 'Aucun artisan trouvé.'], 404);
     }
-
     return response()->json($artisans, 200);
 }
+
 
 
 }

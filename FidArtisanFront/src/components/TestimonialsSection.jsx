@@ -1,36 +1,39 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon, StarIcon, UserIcon } from 'lucide-react';
+import user1 from '../assets/images/user1.jpg';
+import user2 from '../assets/images/user2.jpg';
+import user3 from '../assets/images/user3.jpg';
 const testimonials = [{
   id: 1,
   name: 'Laurent Mbarga',
   role: 'Propriétaire',
   rating: 5,
-  image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
+  src: user1,
   text: 'FidArtisan est un endroit que je recommande aux personnes expérimentées. Si vous avez besoin de faire remplacer votre évier, allez chez FidArtisan.'
 }, {
   id: 2,
   name: 'Marie Tchuente',
   role: 'Architecte',
   rating: 4,
-  image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
+  src:user2,
   text: "J'ai trouvé des artisans de qualité pour plusieurs de mes projets. Le processus est simple et les résultats sont toujours au rendez-vous."
 }, {
   id: 3,
-  name: 'Jean Pierre',
+  name: 'Jeanne Vetou',
   role: 'Entrepreneur',
   rating: 5,
-  image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
+  src:user3,
   text: "En tant qu'entrepreneur dans la construction, FidArtisan m'a permis de trouver rapidement des artisans qualifiés pour mes chantiers."
 }];
 const TestimonialsSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      handleNext();
-    }, 5000);
-    return () => clearInterval(timer);
-  }, );
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     handleNext();
+  //   }, 5000);
+  //   return () => clearInterval(timer);
+  // }, );
   const handlePrevious = () => {
     if (isAnimating) return;
     setIsAnimating(true);
@@ -55,7 +58,7 @@ const TestimonialsSection = () => {
                   <div className="bg-white p-8 rounded-xl shadow-lg">
                     <div className="flex flex-col items-center">
                       <div className="w-20 h-20 mb-4 rounded-full overflow-hidden border-2 border-blue-500">
-                        {testimonial.image ? <img src={testimonial.image} alt={testimonial.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center">
+                        {testimonial.src ? <img src={testimonial.src} alt={testimonial.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-blue-100 flex items-center justify-center">
                             <UserIcon className="w-8 h-8 text-blue-500" />
                           </div>}
                       </div>
