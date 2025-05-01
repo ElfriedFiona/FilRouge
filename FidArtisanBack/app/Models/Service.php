@@ -32,8 +32,8 @@ class Service extends Model
         return $this->belongsTo(Artisan::class);
     }
 
-    public function avis(){
-        return $this->hasMany(AvisEtNote::class);
+    public function avisEtNote(){
+        return $this->hasOne(AvisEtNote::class);
     }
 
     public function avisParArtisans(){

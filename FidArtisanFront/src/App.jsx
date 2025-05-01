@@ -15,6 +15,7 @@ import ArtisanList from "./pages/ArtisanList";
 import  ArtisanProfile  from "./pages/ProfileArtisan";
 import RequestServicePage from "./pages/RequestServicePage";
 import ArtisanDashboard from "./pages/Artisan";
+import { PublicClientProfile } from "./components/PublicClientProfile";
 
 function App() {
   return (
@@ -33,7 +34,8 @@ function App() {
         <Route path="/resultats" element={<ArtisanList/>} />
         <Route path="/artisan/:id" element={<ArtisanProfile/>} />
         <Route path="/serviceclient" element={<RequestServicePage/>} />
-        <Route path="artisandash/:id" element={<ArtisanDashboard/>} />
+        <Route path="/artisandash/:id" element={<ArtisanDashboard/>} />
+        <Route path="/client/:id" element={<PublicClientProfile />} />
         <Route
           path="/admin"
           element={

@@ -29,13 +29,25 @@ class AvisEtNoteController extends Controller
     {
         $data = $request->validate([
             'note'       => 'required|integer|min:1|max:5',
-            'client_id'  => 'required|exists:clients,id',
+            'user_id'    => 'required|exists:users,id',
             'artisan_id' => 'required|exists:artisans,id',
+            'service_id' => 'required|exists:services,id',
             'commentaire'=> 'nullable|string',
         ]);
-
+        
+        // On empêche le doublon
+        $exists = AvisEtNote::where('user_id', $data['user_id'])
+                            ->where('service_id', $data['service_id'])
+                            ->exists();
+        
+        if ($exists) {
+            return response()->json(['message' => 'Vous avez déjà laissé un avis pour ce service.'], 400);
+        }
+        
+        
         $avis = AvisEtNote::create($data);
         return response()->json($avis, 201);
+        
     }
 
     /**
@@ -69,7 +81,7 @@ class AvisEtNoteController extends Controller
     $avis->update($validated);
 
     // On recharge les relations client et artisan si tu veux les inclure
-    $avis->load(['client', 'artisan']);
+    $avis->load(['user', 'artisan']);
 
     return response()->json($avis);
 }
@@ -94,10 +106,10 @@ class AvisEtNoteController extends Controller
      * @param  int  $clientId
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getByClient($clientId)
+    public function getByUser($userId)
     {
-        $avis = AvisEtNote::where('client_id', $clientId)
-            ->with(['client.user', 'artisan.user'])
+        $avis = AvisEtNote::where('user_id', $userId)
+            ->with(['user', 'artisan.user'])
             ->get();
 
         if ($avis->isEmpty()) {
@@ -118,7 +130,7 @@ class AvisEtNoteController extends Controller
     public function getByArtisan($artisanId)
     {
         $avis = AvisEtNote::where('artisan_id', $artisanId)
-            ->with(['client.user', 'artisan.user'])
+            ->with(['user', 'artisan.user'])
             ->get();
 
         if ($avis->isEmpty()) {

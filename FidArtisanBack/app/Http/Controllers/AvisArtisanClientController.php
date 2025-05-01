@@ -91,15 +91,16 @@ class AvisArtisanClientController extends Controller
     public function getByArtisan($artisanId)
     {
         $avis = AvisArtisanClient::where('artisan_id', $artisanId)
-            ->with(['artisan.user','client.user'])
+            ->with(['artisan.user', 'client.user'])
             ->get();
-
+    
         if ($avis->isEmpty()) {
-            return response()->json(['message'=>'Aucun avis pour cet artisan'], 404);
+            return response()->json(['message' => 'Aucun avis trouvé pour cet artisan'], 404);
         }
-
+    
         return response()->json($avis, 200);
     }
+    
 
     // Filtrer par client
     public function getByClient($clientId)

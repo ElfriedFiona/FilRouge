@@ -9,7 +9,12 @@ class AvisEtNote extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['note', 'user_id', 'artisan_id','service_id', 'commentaire'];
+    protected $fillable = [
+    'note',
+    'user_id',
+    'artisan_id',
+    'service_id',
+    'commentaire',    ];
 
     public function user() {
         return $this->belongsTo(User::class);

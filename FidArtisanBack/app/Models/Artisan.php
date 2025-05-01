@@ -79,4 +79,10 @@ class Artisan extends Model
     return $this->hasMany(AvisArtisanClient::class, 'artisan_id');
     }
 
+    public function calendarEvents()
+{
+    return $this->hasMany(CalendarEvent::class);
+}
+
+
 }

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Mail\ServiceStatusNotification;
+use Illuminate\Support\Facades\Mail;
 
 class ServiceController extends Controller
 {
@@ -87,15 +90,14 @@ class ServiceController extends Controller
 
         $data = $request->validate([
             'description'     => 'nullable|string',
-            'statut'          => 'nullable|string',
             'type_de_service' => 'nullable|string',
             'budget'          => 'nullable|numeric',
             'date_limite'     => 'nullable|date|after_or_equal:today',
             'priorité'        => 'nullable|string',
             'fichiers'        => 'nullable|string',
             'adresse_details' => 'nullable|string',
-            'statut_artisan'  => 'nullable|string',
             'image_path'      => 'nullable|string',
+            'message_reponse' => 'nullable|string',
         ]);
 
         $service->update($data);
@@ -126,4 +128,74 @@ class ServiceController extends Controller
         $services = Service::where('artisan_id', $artisanId)->with('user')->get();
         return response()->json($services);
     }
+
+    /**
+ * L'artisan accepte la demande : passe en 'en cours' et notifie le client.
+ */
+public function acceptRequest(Request $request, $id)
+{
+    $request->validate([
+        'message' => 'nullable|string|max:1000',
+    ]);
+
+    $service = Service::findOrFail($id);
+    $service->statut = 'en cours';           // Mise à jour du statut global
+    $service->statut_artisan = 'acceptée';   // Mise à jour du statut de l'artisan
+    $service->message_reponse = $request->message;
+    $service->save();
+
+    $client = $service->user; // relation user()
+
+    Mail::to($client->email)
+        ->send(new ServiceStatusNotification($service, 'Acceptée'));
+
+    return response()->json(['message' => 'Demande acceptée, le client a été notifié.']);
+}
+
+/**
+ * L'artisan refuse la demande : passe en 'annulé' et notifie le client.
+ */
+public function refuseRequest(Request $request, $id)
+{
+    $request->validate([
+        'message' => 'nullable|string|max:1000',
+    ]);
+
+    $service = Service::findOrFail($id);
+    $service->statut = 'annulé';             // Mise à jour du statut global
+    $service->statut_artisan = 'refusée';    // Mise à jour du statut de l'artisan
+    $service->message_reponse = $request->message;
+    $service->save();
+
+    $client = $service->user;
+
+    Mail::to($client->email)
+        ->send(new ServiceStatusNotification($service, 'Refusée'));
+
+    return response()->json(['message' => 'Demande refusée, le client a été notifié.']);
+}
+
+public function terminer($id)
+{
+    $service = Service::findOrFail($id);
+
+    // Vérifie que le service est en cours
+    if ($service->statut !== 'en cours') {
+        return response()->json(['message' => 'Seuls les services en cours peuvent être terminés.'], 400);
+    }
+
+    $service->statut = 'terminé';
+    $service->save();
+
+    // Récupérer le client associé au service
+    $client = $service->user;
+
+    // Envoyer une notification par email au client
+    Mail::to($client->email)
+        ->send(new ServiceStatusNotification($service, 'Terminée'));
+
+    return response()->json(['message' => 'Service marqué comme terminé et le client a été notifié.', 'service' => $service]);
+}
+
+
 }

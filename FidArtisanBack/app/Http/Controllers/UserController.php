@@ -95,20 +95,76 @@ class UserController extends Controller
     // Affichage public d'un profil utilisateur
     public function showById($id)
     {
-        $user = User::with(['client', 'artisan'])->findOrFail($id);
+        $user = User::with([
+            // Pour le client : sa fiche
+            'client.ville',
+            // Pour les favoris : on part de client->favoris pivot vers artisan->user/profession
+            'client.favorites.artisan.user',
+            'client.favorites.artisan.profession',
+            // Pour les avis reçus : artisan->avis where artisan_id = ce user si role=artisan,
+            // ou si client, artisan a déposé un avis sur lui
+            'avisParArtisans.artisan.user',
+        ])->findOrFail($id);
 
-        $profile = $user->only(['id', 'name', 'email', 'role', 'email_verified_at']);
+        // Construire la réponse propre
+        $profile = [
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+            'role'  => $user->role,
+        ];
 
         if ($user->role === 'client' && $user->client) {
-            $profile['client'] = $user->client->only(['telephone', 'ville_id']);
-        } elseif ($user->role === 'artisan' && $user->artisan) {
-            $profile['artisan'] = $user->artisan->only([
-                'photo', 'telephone', 'ville_id', 'profession_id',
-                'description', 'experience', 'services_proposer'
-            ]);
+            $c = $user->client;
+            $profile['client'] = [
+                'telephone' => $c->telephone,
+                'langue'    => $c->langue,
+                'sexe'      => $c->sexe,
+                'ville'     => $c->ville->nom ?? null,
+                'photo'     => $c->photo,
+                'description'     => $c->description,
+            ];
+
+            // artisans favoris
+            $profile['favorites'] = $c->favorites->map(function($fav) {
+                $art = $fav->artisan;
+                return [
+                    'id'             => $art->id,
+                    'name'           => $art->user->name,
+                    'profilePicture' => $art->photo ? asset($art->photo) : null,
+                    'profession'     => $art->profession->nom ?? null,
+                ];
+            });
+
+            // avis reçus (la relation avisRecus doit être définie sur User comme hasMany(AvisEtNote::class,'client_id'))
+            $profile['avisParArtisans'] = $user->avisParArtisans->map(function($avis) {
+                return [
+                    'note'       => $avis->note,
+                    'commentaire'=> $avis->commentaire,
+                    'artisan'    => [
+                        'id'   => $avis->artisan->id,
+                        'name' => $avis->artisan->user->name,
+                        'photo'=> asset($avis->artisan->photo),
+                    ],
+                    'created_at' => $avis->created_at->toDateTimeString(),
+                ];
+            });
+        }
+        elseif ($user->role === 'artisan' && $user->artisan) {
+            $a = $user->artisan;
+            $profile['artisan'] = [
+                'photo'       => $a->photo ? asset($a->photo) : null,
+                'telephone'   => $a->telephone,
+                'langue'      => $a->langue,
+                'sexe'        => $a->sexe,
+                'ville'       => $a->ville->nom ?? null,
+                'profession'  => $a->profession->nom ?? null,
+                'description' => $a->description,
+            ];
+            // vous pourriez aussi exposer ici ses annonces, projets, etc.
         }
 
-        return response()->json($profile);
+        return response()->json($profile, 200);
     }
 
     /**

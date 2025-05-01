@@ -20,6 +20,7 @@ use App\Http\Controllers\ProjetRealiserController;
 use App\Http\Controllers\ServiceProposerController;
 use App\Http\Controllers\ArtisanController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\CalendarEventController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
@@ -115,14 +116,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Filtrer les avis par client
     Route::get('/clients/{clientId}/avis', [AvisEtNoteController::class, 'getByClient']);
     // Filtrer les avis par artisan
-    Route::get('/artisans/{artisanId}/avis', [AvisEtNoteController::class, 'getByArtisan']);
-
+    Route::get('/avis-et-notes/artisan/{artisanId}', [AvisEtNoteController::class, 'getByArtisan']);
     // Avis et notes donnée par des artisans aux clients
     Route::apiResource('avis-artisan-cllients', AvisArtisanClientController::class);
     Route::get('/avis-artisan-clients/{clientId}', [AvisArtisanClientController::class, 'getByClient']);
 
     // Filtres
-    Route::get('/artisans/{artisanId}/avis-clients',      [AvisArtisanClientController::class,'getByArtisan']);
+    // Récupérer les avis d'un artisan donné
+    Route::get('/avis-artisan-clients/artisan/{artisanId}', [AvisArtisanClientController::class, 'getByArtisan']);
+
     Route::get('/clients/{clientId}/avis-artisans',       [AvisArtisanClientController::class,'getByClient']);
 
     // Expériences
@@ -154,7 +156,16 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::apiResource('/services', ServiceController::class);
 Route::get('/services/user/{id}', [ServiceController::class, 'getByUser']);
 Route::get('/services/artisan/{id}', [ServiceController::class, 'getByArtisan']);
+Route::post('/services/accept/{id}', [ServiceController::class, 'acceptRequest']);
+Route::post('/services/refuse/{id}', [ServiceController::class, 'refuseRequest']);
+Route::post('/services/terminer/{id}', [ServiceController::class, 'terminer']);
 
+
+
+Route::get('/calendar-events', [CalendarEventController::class, 'index']);
+Route::post('/calendar-events', [CalendarEventController::class, 'store']);
+Route::put('/calendar-events/{calendarEvent}', [CalendarEventController::class, 'update']);
+Route::delete('/calendar-events/{calendarEvent}', [CalendarEventController::class, 'destroy']);
 
 
 });

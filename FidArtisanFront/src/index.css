@@ -1,5 +1,20 @@
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 @import "leaflet/dist/leaflet.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+body {
+    overflow-y: scroll;
+  }
+
+  .scroll-hidden {
+    scrollbar-width: none;         /* Firefox */
+    -ms-overflow-style: none;      /* IE/Edge */
+  }
+  
+  .scroll-hidden::-webkit-scrollbar {
+    display: none;                 /* Chrome, Safari, Opera */
+  }
+  
+  
 
