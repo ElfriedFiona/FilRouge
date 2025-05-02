@@ -117,8 +117,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/clients/{clientId}/avis', [AvisEtNoteController::class, 'getByClient']);
     // Filtrer les avis par artisan
     Route::get('/avis-et-notes/artisan/{artisanId}', [AvisEtNoteController::class, 'getByArtisan']);
+
     // Avis et notes donnée par des artisans aux clients
-    Route::apiResource('avis-artisan-cllients', AvisArtisanClientController::class);
+    Route::apiResource('avis-artisan-clients', AvisArtisanClientController::class);
     Route::get('/avis-artisan-clients/{clientId}', [AvisArtisanClientController::class, 'getByClient']);
 
     // Filtres

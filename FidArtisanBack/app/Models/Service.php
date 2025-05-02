@@ -37,6 +37,6 @@ class Service extends Model
     }
 
     public function avisParArtisans(){
-        return $this->hasMany(AvisArtisanClient::class);
+        return $this->hasOne(AvisArtisanClient::class);
     }
 }

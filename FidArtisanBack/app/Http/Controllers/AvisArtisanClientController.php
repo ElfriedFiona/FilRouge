@@ -15,7 +15,7 @@ class AvisArtisanClientController extends Controller
     public function index()
     {
         return response()->json(
-            AvisArtisanClient::with(['artisan.user','client.user'])->get()
+            AvisArtisanClient::with(['artisan.user','user'])->get()
         , 200);
     }
 
@@ -29,10 +29,10 @@ class AvisArtisanClientController extends Controller
     {
         $data = $request->validate([
             'artisan_id'  => 'required|exists:artisans,id',
-            'client_id'   => 'required|exists:clients,id',
+            'user_id'   => 'required|exists:users,id',
             'note'        => 'required|integer|min:1|max:5',
             'commentaire' => 'nullable|string',
-            'date'        => 'required|date',
+            'service_id' => 'required|exists:services,id',
         ]);
 
         $avis = AvisArtisanClient::create($data);
@@ -47,7 +47,7 @@ class AvisArtisanClientController extends Controller
      */
     public function show($id)
     {
-        $avis = AvisArtisanClient::with(['artisan.user','client.user'])
+        $avis = AvisArtisanClient::with(['artisan.user','user'])
             ->findOrFail($id);
 
         return response()->json($avis, 200);
@@ -67,11 +67,10 @@ class AvisArtisanClientController extends Controller
         $data = $request->validate([
             'note'        => 'sometimes|required|integer|min:1|max:5',
             'commentaire' => 'sometimes|nullable|string',
-            'date'        => 'sometimes|required|date',
         ]);
 
         $avis->update($data);
-        return response()->json($avis->load(['artisan.user','client.user']), 200);
+        return response()->json($avis->load(['artisan.user','user']), 200);
     }
 
     /**
@@ -91,7 +90,7 @@ class AvisArtisanClientController extends Controller
     public function getByArtisan($artisanId)
     {
         $avis = AvisArtisanClient::where('artisan_id', $artisanId)
-            ->with(['artisan.user', 'client.user'])
+            ->with(['artisan.user', 'user'])
             ->get();
     
         if ($avis->isEmpty()) {
@@ -103,10 +102,10 @@ class AvisArtisanClientController extends Controller
     
 
     // Filtrer par client
-    public function getByClient($clientId)
+    public function getByClient($userId)
     {
-        $avis = AvisArtisanClient::where('client_id', $clientId)
-            ->with(['artisan.user','client.user'])
+        $avis = AvisArtisanClient::where('user_id', $userId)
+            ->with(['artisan.user','user'])
             ->get();
 
         if ($avis->isEmpty()) {

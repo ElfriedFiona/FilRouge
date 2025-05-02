@@ -15,7 +15,6 @@ class AvisArtisanClient extends Model
         'service_id',
         'note',
         'commentaire',
-        'date',
     ];
 
     public function artisan()

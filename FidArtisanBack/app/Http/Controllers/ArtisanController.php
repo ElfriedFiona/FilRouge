@@ -140,8 +140,8 @@ public function showFullProfile(Artisan $artisan)
         'projets',
         'experiences',
         'competences',
-        // charger le client + user pour chaque avis
-        'avis.client.user',
+        // charger les users pour chaque avis
+        'avis.user',
     ]);
 
     return response()->json($artisan, 200);
@@ -172,7 +172,5 @@ public function search(Request $request)
     }
     return response()->json($artisans, 200);
 }
-
-
 
 }

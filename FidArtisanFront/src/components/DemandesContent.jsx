@@ -17,6 +17,7 @@ const DemandesContent = () => {
   const itemsPerPage = 10;
   const user = JSON.parse(localStorage.getItem('user'));
   const artisanId = user?.artisan?.id;
+  const [avisModal, setAvisModal] = useState(null);
 
   useEffect(() => {
     fetchRequests();
@@ -39,7 +40,7 @@ const DemandesContent = () => {
         await api.post(`/services/accept/${id}`);
         toast.success('Demande acceptée');
       } else if (action === 'refuse') {
-        await api.post(`/services/refuserequest/${id}`);
+        await api.post(`/services/refuse/${id}`);
         toast.success('Demande refusée');
       }
       fetchRequests();
@@ -52,7 +53,7 @@ const DemandesContent = () => {
     try {
       const response = await api.post(`/services/terminer/${id}`);
       toast.success('Service marqué comme terminé');
-      fetchDemandes(); // Recharger les données
+      fetchRequests(); // Recharger les données
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || 'Erreur lors de la mise à jour.');
@@ -119,6 +120,16 @@ const DemandesContent = () => {
       case 'annulé': return <span className={`${base} bg-red-100 text-red-800`}>Annulé</span>;
       default: return statut;
     }
+  };
+
+  const StarRating = ({ note }) => {
+    return (
+      <div className="flex text-yellow-500">
+        {[...Array(5)].map((_, i) => (
+          <span key={i}>{i < note ? '★' : '☆'}</span>
+        ))}
+      </div>
+    );
   };
 
   const filtered = requests.filter(req => {
@@ -199,6 +210,8 @@ const DemandesContent = () => {
                 <th className="p-2">Budget</th>
                 <th className="p-2">Statut</th>
                 <th className="p-2">Statut Artisan</th>
+                <th className="p-2">Avis Clients</th>
+                <th className="p-2">Avis Artisans</th>
                 <th className="p-2">Actions</th>
               </tr>
             </thead>
@@ -213,6 +226,30 @@ const DemandesContent = () => {
                   <td className="p-2">{req.budget} FCFA</td>
                   <td className="p-2">{statusBadge(req.statut)}</td>
                   <td className="p-2">{statusBadge(req.statut_artisan)}</td>
+                  <td className="p-3 cursor-pointer" onClick={() => req.avis_et_note && setAvisModal(req.avis_et_note)}>
+                  {req.avis_et_note ? (
+                    <div className="group">
+                      <StarRating note={req.avis_et_note.note} />
+                      <div className="text-xs text-blue-600 group-hover:underline">
+                        Voir avis
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 italic">Aucun avis</span>
+                  )}
+                </td>
+                  <td className="p-3 cursor-pointer" onClick={() => req.avis_par_artisans && setAvisModal(req.avis_par_artisans)}>
+                  {req.avis_par_artisans ? (
+                    <div className="group">
+                      <StarRating note={req.avis_par_artisans.note} />
+                      <div className="text-xs text-blue-600 group-hover:underline">
+                        Voir avis
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 italic">Aucun avis</span>
+                  )}
+                </td>
                   <td className="p-2">
                     <button
                       onClick={() => setSelectedRequest(req)}
@@ -329,6 +366,75 @@ const DemandesContent = () => {
                     />
                   </div>
                 )}
+
+                {/* Formulaire d'avis */}
+      {selectedRequest.statut === 'terminé' && !selectedRequest.avis_par_artisans && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const note = e.target.note.value;
+            const commentaire = e.target.commentaire.value;
+            console.log(selectedRequest);
+            api.post('/avis-artisan-clients', {
+              service_id: selectedRequest.id,         // OK
+              note,
+              commentaire,
+              user_id: selectedRequest.user.id,       // CORRIGÉ : pas .client.id
+              artisan_id: selectedRequest.artisan_id, // OK
+            })
+            .then(() => {
+              toast.success("Avis envoyé !");
+              setSelectedRequest(null);
+              fetchRequests(); // pour recharger la liste
+            }).catch(err => {
+              console.error(err);
+              if (err.response && err.response.status === 400) {
+                toast.error("Vous avez déjà laissé un avis pour ce service.");
+              } else {
+                toast.error("Erreur lors de l'envoi de l'avis.");
+              }
+            });
+          }}
+          className="mt-6 border-t pt-4"
+        >
+          <h3 className="text-lg font-semibold mb-2">Laisser un avis</h3>
+          <div className="mb-3">
+            <label className="block text-sm">Note (1 à 5)</label>
+            <input
+              name="note"
+              type="number"
+              min="1"
+              max="5"
+              required
+              className="border px-3 py-2 rounded w-24"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="block text-sm">Commentaire</label>
+            <textarea
+              name="commentaire"
+              required
+              className="border px-3 py-2 rounded w-full"
+            ></textarea>
+          </div>
+          <button
+            type="submit"
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+          >
+            Envoyer
+          </button>
+        </form>
+      )}
+
+      {/* Affichage de l’avis existant */}
+      {selectedRequest.statut === 'terminé' && selectedRequest.avis_par_artisans && (
+        <div className="mt-6 border-t pt-4">
+          <h3 className="text-lg font-semibold mb-2">Avis laissé</h3>
+          <p><strong>Note :</strong> {selectedRequest.avis_par_artisans.note}/5</p>
+          <p><strong>Commentaire :</strong> {selectedRequest.avis_par_artisans.commentaire}</p>
+        </div>
+      )}
+
               </div>
               <button
                 className="mt-4 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center gap-2"
@@ -345,6 +451,51 @@ const DemandesContent = () => {
                 >
                   Voir profil client
                 </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+        {/* modal avis reçu du client */ }
+        <AnimatePresence>
+        {avisModal && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setAvisModal(null)}
+          >
+            <motion.div
+              className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full relative"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setAvisModal(null)}
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-lg font-bold"
+              >
+                &times;
+              </button>
+              <h3 className="text-lg font-semibold mb-2 text-center">Détail de l’avis</h3>
+              <div className="mb-3 text-center text-sm text-gray-500">
+                {avisModal.artisan_id ? 'Avis laissé par lartisan' : 'Avis laissé par le client'}
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-gray-700 font-medium">
+                  {avisModal.user?.name || avisModal.artisan?.user?.name || 'Nom inconnu'}
+                </p>
+                <div className="text-yellow-500 text-lg">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i}>{i < avisModal.note ? '★' : '☆'}</span>
+                  ))}
+                </div>
+                <p className="text-gray-600 text-center italic mt-2 px-4">
+                  "{avisModal.commentaire}"
+                </p>
               </div>
             </motion.div>
           </motion.div>

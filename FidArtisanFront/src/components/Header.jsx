@@ -40,12 +40,16 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userId');
-    window.location.href = '/login';
+    api.post('/logout')
+      .then(() => {
+        localStorage.clear(); // Supprime tout
+        navigate('/login');
+      })
+      .catch((error) => {
+        console.error('Erreur lors de la déconnexion:', error);
+      });
   };
-
+  
   return (
     <header className="w-full bg-white border-b border-gray-200 shadow-xl sticky top-0 z-[1000]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">

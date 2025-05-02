@@ -24,6 +24,7 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 600px;
+            animation: fadeIn 0.5s ease-out;
         }
         h2 {
             color: #007bff;
@@ -65,19 +66,19 @@
             color: #777;
         }
         .accent-color {
-            color: #28a745; /* Vert plus moderne */
+            color: #28a745;
         }
         .decision-acceptee {
-            color: #198754; /* Vert vif pour l'acceptation */
+            color: #198754;
             font-weight: bold;
         }
         .decision-refusee {
-            color: #dc3545; /* Rouge pour le refus */
+            color: #dc3545;
             font-weight: bold;
         }
-        /* Animation subtile pour attirer l'attention */
-        .email-container {
-            animation: fadeIn 0.5s ease-out;
+        .decision-terminee {
+            color: #0d6efd;
+            font-weight: bold;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-20px); }
@@ -89,10 +90,22 @@
     <div class="email-container">
         <h2>Bonjour {{ $userName }},</h2>
 
+        @php
+            $decisionLower = strtolower($decision);
+            $decisionClass = match($decisionLower) {
+                'acceptée' => 'decision-acceptee',
+                'refusée' => 'decision-refusee',
+                'terminée' => 'decision-terminee',
+                default => '',
+            };
+        @endphp
+
         <p>
-            L'artisan <strong class="accent-color">{{ $artisanName }}</strong> a <strong class="{{ strtolower($decision) === 'acceptée' ? 'decision-acceptee' : 'decision-refusee' }}">
-                {{ strtolower($decision) }}
-            </strong> votre demande de service :
+            @if($decisionLower === 'terminée')
+                Le service suivant a été <strong class="{{ $decisionClass }}">{{ $decisionLower }}</strong> par l'artisan <strong class="accent-color">{{ $artisanName }}</strong> :
+            @else
+                L'artisan <strong class="accent-color">{{ $artisanName }}</strong> a <strong class="{{ $decisionClass }}">{{ $decisionLower }}</strong> votre demande de service :
+            @endif
         </p>
 
         <ul>

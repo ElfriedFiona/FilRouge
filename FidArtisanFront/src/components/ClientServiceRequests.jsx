@@ -34,6 +34,7 @@ const ClientServiceRequests = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const userId = localStorage.getItem('userId');
+  const [avisModal, setAvisModal] = useState(null); // pour afficher l’avis sélectionné
 
   useEffect(() => {
     fetchServices();
@@ -176,6 +177,17 @@ const ClientServiceRequests = () => {
     doc.save(`demande-${service.id}.pdf`);
   };
 
+  const StarRating = ({ note }) => {
+    return (
+      <div className="flex text-yellow-500">
+        {[...Array(5)].map((_, i) => (
+          <span key={i}>{i < note ? '★' : '☆'}</span>
+        ))}
+      </div>
+    );
+  };
+  
+
   if (loading) return <p>Chargement en cours…</p>;
 
   return (
@@ -222,7 +234,7 @@ const ClientServiceRequests = () => {
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-100">
             <tr>
-              {['#','Type','Artisan','Budget','Date souhaitée','Priorité','Statut','Réponse','Actions']
+              {['#','Type','Artisan','Budget','Date souhaitée','Priorité','Statut','Réponse','Avis client','Avis Artisan','Actions']
                 .map((h,i)=><th key={i} className="p-3">{h}</th>)}
             </tr>
           </thead>
@@ -247,6 +259,31 @@ const ClientServiceRequests = () => {
                 <td className="p-3 capitalize">{s.priorité}</td>
                 <td className="p-3">{statusBadge(s.statut)}</td>
                 <td className="p-3">{statusBadge(s.statut_artisan)}</td>
+                <td className="p-3 cursor-pointer" onClick={() => s.avis_et_note && setAvisModal(s.avis_et_note)}>
+                  {s.avis_et_note ? (
+                    <div className="group">
+                      <StarRating note={s.avis_et_note.note} />
+                      <div className="text-xs text-blue-600 group-hover:underline">
+                        Voir avis
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 italic">Aucun avis</span>
+                  )}
+                </td>
+                <td className="p-3 cursor-pointer" onClick={() => s.avis_par_artisans && setAvisModal(s.avis_par_artisans)}>
+                  {s.avis_par_artisans ? (
+                    <div className="group">
+                      <StarRating note={s.avis_par_artisans.note} />
+                      <div className="text-xs text-blue-600 group-hover:underline">
+                        Voir avis
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 italic">Aucun avis</span>
+                  )}
+                </td>
+
                 <td className="p-3 flex justify-center space-x-2">
                   <button
                     onClick={()=>setSelectedService(s)}
@@ -358,74 +395,119 @@ const ClientServiceRequests = () => {
                 )}
 
                 {/* Formulaire d'avis */}
-      {selectedService.statut === 'terminé' && !selectedService.avis && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const note = e.target.note.value;
-            const commentaire = e.target.commentaire.value;
-            console.log(selectedService);
-            api.post('/avis', {
-              service_id: selectedService.id,         // OK
-              note,
-              commentaire,
-              user_id: selectedService.user_id,       // CORRIGÉ : pas .client.id
-              artisan_id: selectedService.artisan.id, // OK
-            })
-            .then(() => {
-              toast.success("Avis envoyé !");
-              setSelectedService(null);
-              fetchServices(); // pour recharger la liste
-            }).catch(err => {
-              console.error(err);
-              alert("Erreur lors de l'envoi de l'avis");
-            });
-          }}
-          className="mt-6 border-t pt-4"
-        >
-          <h3 className="text-lg font-semibold mb-2">Laisser un avis</h3>
-          <div className="mb-3">
-            <label className="block text-sm">Note (1 à 5)</label>
-            <input
-              name="note"
-              type="number"
-              min="1"
-              max="5"
-              required
-              className="border px-3 py-2 rounded w-24"
-            />
-          </div>
-          <div className="mb-3">
-            <label className="block text-sm">Commentaire</label>
-            <textarea
-              name="commentaire"
-              required
-              className="border px-3 py-2 rounded w-full"
-            ></textarea>
-          </div>
-          <button
-            type="submit"
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-          >
-            Envoyer
-          </button>
-        </form>
-      )}
+              {selectedService.statut === 'terminé' && !selectedService.avis_et_note && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const note = e.target.note.value;
+                    const commentaire = e.target.commentaire.value;
+                    console.log(selectedService);
+                    api.post('/avis', {
+                      service_id: selectedService.id,         // OK
+                      note,
+                      commentaire,
+                      user_id: selectedService.user_id,       // CORRIGÉ : pas .client.id
+                      artisan_id: selectedService.artisan.id, // OK
+                    })
+                    .then(() => {
+                      toast.success("Avis envoyé !");
+                      setSelectedService(null);
+                      fetchServices(); // pour recharger la liste
+                    }).catch(err => {
+                      console.error(err);
+                      if (err.response && err.response.status === 400) {
+                        toast.error("Vous avez déjà laissé un avis pour ce service.");
+                      } else {
+                        toast.error("Erreur lors de l'envoi de l'avis.");
+                      }
+                    });
+                  }}
+                  className="mt-6 border-t pt-4"
+                >
+                  <h3 className="text-lg font-semibold mb-2">Laisser un avis</h3>
+                  <div className="mb-3">
+                    <label className="block text-sm">Note (1 à 5)</label>
+                    <input
+                      name="note"
+                      type="number"
+                      min="1"
+                      max="5"
+                      required
+                      className="border px-3 py-2 rounded w-24"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-sm">Commentaire</label>
+                    <textarea
+                      name="commentaire"
+                      required
+                      className="border px-3 py-2 rounded w-full"
+                    ></textarea>
+                  </div>
+                  <button
+                    type="submit"
+                    className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+                  >
+                    Envoyer
+                  </button>
+                </form>
+              )}
 
-      {/* Affichage de l’avis existant */}
-      {selectedService.statut === 'terminé' && selectedService.avis && (
-        <div className="mt-6 border-t pt-4">
-          <h3 className="text-lg font-semibold mb-2">Avis laissé</h3>
-          <p><strong>Note :</strong> {selectedService.avis.note}/5</p>
-          <p><strong>Commentaire :</strong> {selectedService.avis.commentaire}</p>
-        </div>
-      )}
+              {/* Affichage de l’avis existant */}
+              {selectedService.statut === 'terminé' && selectedService.avis_et_note && (
+                <div className="mt-6 border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-2">Avis laissé</h3>
+                  <p><strong>Note :</strong> {selectedService.avis_et_note.note}/5</p>
+                  <p><strong>Commentaire :</strong> {selectedService.avis_et_note.commentaire}</p>
+                </div>
+              )}
 
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+       {/* modal avis laissé par le client */ }
+      <AnimatePresence>
+      {avisModal && (
+        <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 mt-16"
+            initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{opacity:0}}
+          >
+            <motion.div
+              className="bg-white rounded-lg shadow-lg w-full max-w-2xl relative overflow-auto max-h-[80vh]"
+              initial={{ scale:0.9,y:50 }} animate={{ scale:1,y:0 }} exit={{scale:0.9,y:50}}
+              transition={{ duration:0.3 }}
+            >
+      <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+      <button
+        className="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-xl"
+        onClick={() => setAvisModal(null)}
+      >
+        &times;
+      </button>
+      <h3 className="text-lg font-semibold mb-4">Avis sur le service</h3>
+      {/* <div className="mb-3">
+        <strong>Par : </strong>
+        <p className="mt-1 text-gray-700 italic">{avisModal.user?.name}</p>
+      </div> */}
+      <div className="mb-3">
+        <strong>Note :</strong>
+        <StarRating note={avisModal.note} />
+      </div>
+      <div>
+        <strong>Commentaire :</strong>
+        <p className="mt-1 text-gray-700 italic">{avisModal.commentaire}</p>
+      </div>
+    </div>
+  </div>
+  </motion.div>
+          </motion.div>
+      )}
+      </AnimatePresence>
+
     </div>
   );
 };

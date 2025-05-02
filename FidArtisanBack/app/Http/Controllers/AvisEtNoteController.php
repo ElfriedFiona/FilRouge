@@ -15,7 +15,7 @@ class AvisEtNoteController extends Controller
     public function index()
     {
         return response()->json(
-            AvisEtNote::with(['client.user','artisan.user'])->get()
+            AvisEtNote::with(['user','artisan.user'])->get()
         );
     }
 
@@ -58,7 +58,7 @@ class AvisEtNoteController extends Controller
      */
     public function show($id)
     {
-        $avis = AvisEtNote::with(['client', 'artisan'])->findOrFail($id);
+        $avis = AvisEtNote::with(['user', 'artisan.user'])->findOrFail($id);
     return response()->json($avis);
     }
 

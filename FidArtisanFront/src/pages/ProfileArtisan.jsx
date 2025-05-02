@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
  import { useParams } from 'react-router-dom';
  import api from '../services/api';
- import Modal from '../components/Modal';
+//  import Modal from '../components/Modal';
  import CreateServiceForm from '../components/CreateServiceForm';
 
  import {ProfileSection }   from '../components/ProfileArtisanSection';
@@ -11,7 +11,7 @@ import React, { useEffect, useState } from 'react';
  import {ExperienceSection} from '../components/ExperienceSection';
  import ReviewsSection     from '../components/ReviewsSection';
  import {LanguagesSection } from '../components/LanguagesSection';
-import Layout from './Layout';
+ import Layout from './Layout';
 
  export default function ArtisanProfile() {
   const { id } = useParams();

@@ -16,7 +16,6 @@ import {
 import DashboardLayout from "../components/DashboardLayout";
 
 import DashboardContent from "../components/DashboardContent";
-import UtilisateurContent from "../components/UtilisateurContent";
 import CalendrierContent from "../components/CalendrierContent";
 import DemandesContent from "../components/DemandesContent";
 import AnnoncesContent from "../components/AnnoncesContent";
@@ -24,10 +23,13 @@ import PaiementsContent from "../components/PaiementsContent";
 import AvisNotesContent from "../components/AvisNotesContent";
 import Header from "../components/Header2";
 import ArtisanProfile from "./ArtisanProfileDash";
+import ResultatsContent from "../components/ResultatsContent";
 // import ResponsiveSidebar from "../components/ResponsiveSidebar";
 
 export default function ArtisanDashboard() {
   const [activeContent, setActiveContent] = useState("Dashboard");
+  const [searchResults, setSearchResults] = useState([]);
+
 
   const renderContent = () => {
     switch (activeContent) {
@@ -45,6 +47,8 @@ export default function ArtisanDashboard() {
         return <PaiementsContent />;
       case "Avis et Notes":
         return <AvisNotesContent />;
+        case "Résultats":
+      return <ResultatsContent resultats={searchResults} />;
       default:
         return <div>Contenu non disponible</div>;
     }
@@ -52,7 +56,7 @@ export default function ArtisanDashboard() {
 
   return (
     <> 
-    <Header setActiveContent={setActiveContent}/>
+    <Header setActiveContent={setActiveContent} setSearchResults={setSearchResults}/>
     <DashboardLayout activeContent={activeContent} setActiveContent={setActiveContent}>
     {renderContent()}
     <footer className="mt-10 text-center text-sm text-gray-500 ">

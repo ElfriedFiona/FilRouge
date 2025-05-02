@@ -18,7 +18,7 @@ class ServiceController extends Controller
     public function index()
     {
         return response()->json(
-            Service::with(['user', 'artisan.user'])->latest()->get()
+            Service::with(['user', 'artisan.user','avisEtNote'])->latest()->get()
         );
     }
 
@@ -71,11 +71,17 @@ class ServiceController extends Controller
      * @param  \App\Models\Service  $service
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        $service = Service::with(['user', 'artisan.user'])->findOrFail($id);
-        return response()->json($service);
-    }
+    public function show($artisanId)
+{
+    $service = Service::where('artisan_id', $artisanId)
+                ->whereNotIn('statut', ['terminé', 'annulée','en cours']) // Filtre ici
+                ->with('user') // si tu veux le nom du client par ex.
+                ->latest()
+                ->get();
+
+    return response()->json($service);
+}
+
 
     /**
      * Update the specified resource in storage.
@@ -119,13 +125,13 @@ class ServiceController extends Controller
 
     public function getByUser($userId)
     {
-        $services = Service::where('user_id', $userId)->with('artisan.user')->get();
+        $services = Service::where('user_id', $userId)->with('artisan.user','avisEtNote.user','avisParArtisans.artisan.user')->get();
         return response()->json($services);
     }
 
     public function getByArtisan($artisanId)
     {
-        $services = Service::where('artisan_id', $artisanId)->with('user')->get();
+        $services = Service::where('artisan_id', $artisanId)->with('user','avisEtNote.user','avisParArtisans.artisan.user')->get();
         return response()->json($services);
     }
 
@@ -162,7 +168,7 @@ public function refuseRequest(Request $request, $id)
     ]);
 
     $service = Service::findOrFail($id);
-    $service->statut = 'annulé';             // Mise à jour du statut global
+    $service->statut = 'annulée';             // Mise à jour du statut global
     $service->statut_artisan = 'refusée';    // Mise à jour du statut de l'artisan
     $service->message_reponse = $request->message;
     $service->save();
