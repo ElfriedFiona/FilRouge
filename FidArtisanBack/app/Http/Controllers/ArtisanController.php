@@ -156,7 +156,7 @@ public function search(Request $request)
     $keyword = $request->query('q');
     $ville   = $request->query('ville');
 
-    $query = Artisan::with(['user','profession','ville'])
+    $query = Artisan::with(['user','profession','ville','avis','services'])
         ->when($keyword, fn($q) => 
             $q->whereHas('user', fn($q2)=> $q2->where('name','like',"%{$keyword}%"))
               ->orWhereHas('profession', fn($q2)=> $q2->where('nom','like',"%{$keyword}%"))

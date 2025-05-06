@@ -35,7 +35,7 @@ export default function ArtisanDashboard() {
     switch (activeContent) {
       case "Dashboard":
         return <DashboardContent />;
-      case "Utilisateur":
+      case "Mon Profil":
         return <ArtisanProfile />;
       case "Calendrier":
         return <CalendrierContent />;

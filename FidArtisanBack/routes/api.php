@@ -120,7 +120,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Avis et notes donnée par des artisans aux clients
     Route::apiResource('avis-artisan-clients', AvisArtisanClientController::class);
-    Route::get('/avis-artisan-clients/{clientId}', [AvisArtisanClientController::class, 'getByClient']);
+    Route::get('/avis-artisan-clients/{userId}', [AvisArtisanClientController::class, 'getByClient']);
 
     // Filtres
     // Récupérer les avis d'un artisan donné
@@ -155,6 +155,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::apiResource('/services', ServiceController::class);
+Route::get('/services/user/{id}', [ServiceController::class, 'showByUser']);
 Route::get('/services/user/{id}', [ServiceController::class, 'getByUser']);
 Route::get('/services/artisan/{id}', [ServiceController::class, 'getByArtisan']);
 Route::post('/services/accept/{id}', [ServiceController::class, 'acceptRequest']);

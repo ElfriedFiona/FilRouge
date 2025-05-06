@@ -104,6 +104,7 @@ class UserController extends Controller
             // Pour les avis reçus : artisan->avis where artisan_id = ce user si role=artisan,
             // ou si client, artisan a déposé un avis sur lui
             'avisParArtisans.artisan.user',
+            'services.artisan.user',
         ])->findOrFail($id);
 
         // Construire la réponse propre
@@ -149,6 +150,23 @@ class UserController extends Controller
                     'created_at' => $avis->created_at->toDateTimeString(),
                 ];
             });
+
+            $profile['services'] = $user->services
+    ->where('statut') // on filtre ici
+    ->map(function($service) {
+        return [
+            'id'       => $service->id,
+            'service'  => $service->description,
+            'statut'   => $service->statut,
+            'date_limite'     => \Carbon\Carbon::parse($service->date)->format('d M Y'),
+            'budget'    => number_format($service->budget, 0, ',', ' ') . ' FCFA',
+            'artisan'  => [
+                'id'   => $service->artisan->id,
+                'name' => $service->artisan->user->name,
+            ]
+        ];
+    })->values(); // pour réindexer proprement
+
         }
         elseif ($user->role === 'artisan' && $user->artisan) {
             $a = $user->artisan;
@@ -235,33 +253,33 @@ class UserController extends Controller
         'email' => $validated['email'],
     ];
 
-    $photoUrlResponse = null;
+    $photoFilename = null; // Variable pour stocker le nom du fichier
 
     if ($request->hasFile('photo')) {
         $photo = $request->file('photo');
         $filename = time() . '_' . $photo->getClientOriginalName();
         $path = $photo->storeAs('uploads', $filename, 'public');
-        $storagePath = 'storage/' . $path;
+        $photoFilename = $filename; // On enregistre juste le nom du fichier
 
         if ($user->role === 'artisan' && $user->artisan) {
-            if ($user->artisan->photo && Storage::disk('public')->exists(str_replace('storage/', '', $user->artisan->photo))) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $user->artisan->photo));
+            if ($user->artisan->photo && Storage::disk('public')->exists('uploads/' . basename($user->artisan->photo))) {
+                Storage::disk('public')->delete('uploads/' . basename($user->artisan->photo));
             }
-            $user->artisan->update(['photo' => $storagePath]);
+            $user->artisan->update(['photo' => $photoFilename]);
         }
 
         if ($user->role === 'client' && $user->client) {
-            if ($user->client->photo && Storage::disk('public')->exists(str_replace('storage/', '', $user->client->photo))) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $user->client->photo));
+            if ($user->client->photo && Storage::disk('public')->exists('uploads/' . basename($user->client->photo))) {
+                Storage::disk('public')->delete('uploads/' . basename($user->client->photo));
             }
-            $user->client->update(['photo' => $storagePath]);
+            $user->client->update(['photo' => $photoFilename]);
         }
 
-        $photoUrlResponse = asset($storagePath);
+        $photoUrlResponse = asset('storage/uploads/' . $photoFilename);
     } else {
         $photoUrlResponse = $user->role === 'artisan' && $user->artisan
-            ? ($user->artisan->photo ? asset($user->artisan->photo) : null)
-            : ($user->client && $user->client->photo ? asset($user->client->photo) : null);
+            ? ($user->artisan->photo ? asset('storage/uploads/' . $user->artisan->photo) : null)
+            : ($user->client && $user->client->photo ? asset('storage/uploads/' . $user->client->photo) : null);
     }
 
     $user->update($userData);

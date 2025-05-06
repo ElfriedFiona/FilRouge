@@ -47,7 +47,7 @@ import React, { useEffect, useState } from 'react';
         console.log('Réponse de l\'API /artisans/${id}/profil:', data);
         const langs = data.langue ? [{ language: data.langue, level: "Intermédiaire", proficiency: 60 }] : [];
         const mappedProfile = {
-          photo: data.photo?.startsWith('http') ? data.photo : `http://127.0.0.1:8000/${data.photo}`,
+          photo: data.photo?.startsWith('http') ? data.photo : `http://127.0.0.1:8000/storage/uploads/${data.photo}`,
           name: data.user?.name || '',
           profession: data.profession?.nom || '',
           location: data.ville?.nom || '',
@@ -59,7 +59,7 @@ import React, { useEffect, useState } from 'react';
           projets: data.projets || [],
           competences: data.competences || [],
           experiences: data.experiences || [],
-          reviews: (data.avis || []).map(a => ({ id: a.id, author: a.client?.user?.name || '', rating: a.note, date: new Date(a.created_at).toLocaleDateString('fr-FR'), comment: a.commentaire || '' })),
+          reviews: (data.avis || []).map(a => ({ id: a.id, author: a.user?.name || '', rating: a.note, date: new Date(a.created_at).toLocaleDateString('fr-FR'), comment: a.commentaire || '' })),
           sexe: data.sexe || '',
         };
         setArtisan({ ...data, _mappedLanguages: langs });
@@ -283,10 +283,10 @@ import React, { useEffect, useState } from 'react';
         }}
       />
       <ServicesSection isOwner={isOwner} services={profile.services} artisanId={parseInt(id)} />
-      <ProjectsSection isOwner={isOwner} projects={profile.projets} />
-      <SkillsSection isOwner={isOwner} skills={profile.competences} />
-      <ExperienceSection isOwner={isOwner} experiences={profile.experiences} />
-      <LanguagesSection isOwner={isOwner} languages={artisan._mappedLanguages} />
+      <ProjectsSection isOwner={isOwner} projects={profile.projets} artisanId={parseInt(id)} />
+      <SkillsSection isOwner={isOwner} skills={profile.competences} artisanId={parseInt(id)}/>
+      <ExperienceSection isOwner={isOwner} experiences={profile.experiences} artisanId={parseInt(id)} />
+      <LanguagesSection isOwner={isOwner} languages={artisan._mappedLanguages} /> 
       <ReviewsSection isOwner={isOwner} reviews={profile.reviews} />
 
       {!isOwner && (

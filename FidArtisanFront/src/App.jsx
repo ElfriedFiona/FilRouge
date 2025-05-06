@@ -34,7 +34,7 @@ function App() {
         <Route path="/resultats" element={<ArtisanList/>} />
         <Route path="/artisan/:id" element={<ArtisanProfile/>} />
         <Route path="/serviceclient" element={<RequestServicePage/>} />
-        <Route path="/artisandash/:id" element={<ArtisanDashboard/>} />
+        {/* <Route path="/artisandash/:id" element={<ArtisanDashboard/>} /> */}
         <Route path="/client/:id" element={<PublicClientProfile />} />
         <Route
           path="/admin"
@@ -50,6 +50,22 @@ function App() {
           element={
             <PrivateRoute roles={['client']}>
               <Client />
+            </PrivateRoute>
+          }
+        />
+        {/* <Route
+          path="/accueil"
+          element={
+            <PrivateRoute roles={['client']}>
+              <Accueil />
+            </PrivateRoute>
+          }
+        /> */}
+        <Route
+          path="/artisandash/:id"
+          element={
+            <PrivateRoute roles={['artisan']}>
+              <ArtisanDashboard/>
             </PrivateRoute>
           }
         />

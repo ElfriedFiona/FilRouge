@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
  import { useParams } from 'react-router-dom';
  import api from '../services/api';
+ import { motion, AnimatePresence } from "framer-motion";
+
 //  import Modal from '../components/Modal';
  import CreateServiceForm from '../components/CreateServiceForm';
 
@@ -59,7 +61,7 @@ import React, { useEffect, useState } from 'react';
           projets: data.projets || [],
           competences: data.competences || [],
           experiences: data.experiences || [],
-          reviews: (data.avis || []).map(a => ({ id: a.id, author: a.client?.user?.name || '', rating: a.note, date: new Date(a.created_at).toLocaleDateString('fr-FR'), comment: a.commentaire || '' })),
+          reviews: (data.avis || []).map(a => ({ id: a.id, author: a.user?.name || '', rating: a.note, date: new Date(a.created_at).toLocaleDateString('fr-FR'), comment: a.commentaire || '' })),
           sexe: data.sexe || '',
         };
         setArtisan({ ...data, _mappedLanguages: langs });
@@ -283,9 +285,9 @@ import React, { useEffect, useState } from 'react';
         }}
       />
       <ServicesSection isOwner={isOwner} services={profile.services} artisanId={parseInt(id)} />
-      <ProjectsSection isOwner={isOwner} projects={profile.projets} />
-      <SkillsSection isOwner={isOwner} skills={profile.competences} />
-      <ExperienceSection isOwner={isOwner} experiences={profile.experiences} />
+      <ProjectsSection isOwner={isOwner} projects={profile.projets} artisanId={parseInt(id)} />
+      <SkillsSection isOwner={isOwner} skills={profile.competences} artisanId={parseInt(id)} />
+      <ExperienceSection isOwner={isOwner} experiences={profile.experiences} artisanId={parseInt(id)}/>
       <LanguagesSection isOwner={isOwner} languages={artisan._mappedLanguages} />
       <ReviewsSection isOwner={isOwner} reviews={profile.reviews} />
 
@@ -300,21 +302,31 @@ import React, { useEffect, useState } from 'react';
 
 {isServiceModalOpen && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative max-h-screen overflow-y-auto">
-      <button
-        onClick={() => setIsServiceModalOpen(false)}
-        className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl font-bold"
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 50 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative max-h-screen overflow-y-auto"
+        style={{ maxHeight: '80vh' }} // Optionnel : Limiter la hauteur maximale
       >
-        &times;
-      </button>
-      <CreateServiceForm
-        userId={userId}
-        artisanId={artisan.id}
-        onSuccess={() => setIsServiceModalOpen(false)}
-      />
-    </div>
+        <button
+          onClick={() => setIsServiceModalOpen(false)}
+          className="top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl font-bold absolute"
+        >
+          &times;
+        </button>
+        <CreateServiceForm
+          userId={userId}
+          artisanId={artisan.id}
+          onSuccess={() => setIsServiceModalOpen(false)}
+        />
+      </motion.div>
+    </AnimatePresence>
   </div>
 )}
+
 
 
 

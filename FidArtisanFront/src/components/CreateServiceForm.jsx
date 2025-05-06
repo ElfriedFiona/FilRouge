@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { format, isFuture, parseISO } from 'date-fns';
+import { isFuture, parseISO } from 'date-fns';
 import api from '../services/api';
-import MapPicker from './MapPicker'; 
+import MapPicker from './MapPicker';
 
-const CreateServiceForm = ({ userId, artisanId, onSuccess  }) => {
+const CreateServiceForm = ({ userId, artisanId, onSuccess }) => {
   const [formData, setFormData] = useState({
     description: '',
     type_de_service: 'standard',
@@ -16,11 +16,10 @@ const CreateServiceForm = ({ userId, artisanId, onSuccess  }) => {
     fichiers: '',
   });
 
-  const [preview, setPreview] = useState({});
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
-  const [imagePreviews, setImagePreviews] = useState([]);
   const [fileNames, setFileNames] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -28,12 +27,10 @@ const CreateServiceForm = ({ userId, artisanId, onSuccess  }) => {
     if (!formData.description.trim()) newErrors.description = 'Description obligatoire';
     if (!formData.budget || isNaN(formData.budget)) {
       newErrors.budget = 'Budget invalide';
-    } else if (formData.budget < 10 || formData.budget > 10000) {
-      newErrors.budget = 'Budget entre 10 et 10 000 €';
     }
 
     if (formData.date_limite && !isFuture(parseISO(formData.date_limite))) {
-      newErrors.date_limite = 'Date limite doit être dans le futur';
+      newErrors.date_limite = 'La date de début doit être dans le futur';
     }
 
     setErrors(newErrors);
@@ -43,48 +40,45 @@ const CreateServiceForm = ({ userId, artisanId, onSuccess  }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setPreview(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0]; // Un seul fichier
+    const file = e.target.files[0];
     if (file) {
       setFormData(prev => ({ ...prev, image_path: file }));
-      setImagePreviews([URL.createObjectURL(file)]);
     }
   };
-  
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0]; // Un seul fichier
+    const file = e.target.files[0];
     if (file) {
       setFormData(prev => ({ ...prev, fichiers: file }));
       setFileNames([file.name]);
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-  
+
     const data = new FormData();
     data.append('user_id', userId);
     data.append('artisan_id', artisanId);
-  
+
     Object.entries(formData).forEach(([key, value]) => {
       if (value instanceof File) {
-        data.append(key, value); // un seul fichier
+        data.append(key, value);
       } else {
         data.append(key, value);
       }
     });
-  
+
+    setLoading(true);
     try {
       await api.post('/services', data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-  
+
       setSuccess(true);
       if (onSuccess) onSuccess();
       setFormData({
@@ -97,171 +91,153 @@ const CreateServiceForm = ({ userId, artisanId, onSuccess  }) => {
         image_path: '',
         fichiers: '',
       });
-      setImagePreviews([]);
       setFileNames([]);
-      setPreview({});
     } catch (err) {
       console.error(err);
       setErrors(err.response?.data?.errors || {});
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   return (
-<div className="max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-  <h2 className="text-2xl font-bold mb-6">Créer un service</h2>
+    <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg overflow-y-auto max-h-[90vh]">
+      <h2 className="text-2xl font-bold mb-6">Créer un service</h2>
 
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-    {/* Formulaire */}
-    <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
-      <div>
-        <label className="block font-medium">Description</label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-        />
-        {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-      </div>
-
-      <div className="flex gap-4">
-        <div className="w-1/2">
-          <label className="block font-medium">Type de service</label>
-          <select
-            name="type_de_service"
-            value={formData.type_de_service}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-          >
-            <option value="standard">Standard</option>
-            <option value="urgent">Urgent</option>
-            <option value="planifié">Planifié</option>
-          </select>
-        </div>
-
-        <div className="w-1/2">
-          <label className="block font-medium">Priorité</label>
-          <select
-            name="priorité"
-            value={formData.priorité}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-          >
-            <option value="basse">Basse</option>
-            <option value="moyenne">Moyenne</option>
-            <option value="haute">Haute</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label className="block font-medium">Budget (€)</label>
-        <input
-          type="number"
-          name="budget"
-          value={formData.budget}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-        />
-        {errors.budget && <p className="text-red-500 text-sm">{errors.budget}</p>}
-      </div>
-
-      <div>
-        <label className="block font-medium">Date limite</label>
-        <input
-          type="date"
-          name="date_limite"
-          value={formData.date_limite}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-        />
-        {errors.date_limite && <p className="text-red-500 text-sm">{errors.date_limite}</p>}
-      </div>
-
-      <div>
-        <label className="block font-medium">Adresse</label>
-        <input
-          type="text"
-          name="adresse_details"
-          value={formData.adresse_details}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-          placeholder="Cliquez sur la carte ou saisissez manuellement"
-        />
-      </div>
-
-      <MapPicker
-        onSelect={(adresse) => {
-          setFormData(prev => ({ ...prev, adresse_details: adresse }));
-          setPreview(prev => ({ ...prev, adresse_details: adresse }));
-        }}
-      />
-
-      <div>
-        <label className="block font-medium">Image (facultatif)</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="w-full"
-        />
-        {imagePreviews.length > 0 && (
-          <div className="flex gap-2 mt-2 flex-wrap">
-            {imagePreviews.map((src, index) => (
-              <img key={index} src={src} alt="preview" className="h-24 w-auto rounded shadow" />
-            ))}
+      <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <label htmlFor="description" className="block font-medium text-gray-700">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="mt-1 w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              rows="3"
+            />
+            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
           </div>
-        )}
-      </div>
 
-      <div>
-        <label className="block font-medium">Fichier (facultatif)</label>
-        <input
-          type="file"
-          onChange={handleFileChange}
-          className="w-full"
-        />
-        {fileNames.length > 0 && (
-          <ul className="mt-2 text-sm text-gray-700 space-y-1">
-            {fileNames.map((name, idx) => (
-              <li key={idx}>📎 {name}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="type_de_service" className="block font-medium text-gray-700">Type de service</label>
+              <select
+                id="type_de_service"
+                name="type_de_service"
+                value={formData.type_de_service}
+                onChange={handleChange}
+                className="mt-1 w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              >
+                <option value="standard">Standard</option>
+                <option value="urgent">Urgent</option>
+                <option value="planifié">Planifié</option>
+              </select>
+            </div>
 
-      <button
-        type="submit"
-        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
-      >
-        Envoyer la demande
-      </button>
+            <div>
+              <label htmlFor="priorité" className="block font-medium text-gray-700">Priorité</label>
+              <select
+                id="priorité"
+                name="priorité"
+                value={formData.priorité}
+                onChange={handleChange}
+                className="mt-1 w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              >
+                <option value="basse">Basse</option>
+                <option value="moyenne">Moyenne</option>
+                <option value="haute">Haute</option>
+              </select>
+            </div>
+          </div>
 
-      {success && <p className="text-green-600 font-semibold mt-2">Service créé avec succès !</p>}
-    </form>
+          <div>
+            <label htmlFor="budget" className="block font-medium text-gray-700">Budget (FCFA)</label>
+            <input
+              type="number"
+              id="budget"
+              name="budget"
+              value={formData.budget}
+              onChange={handleChange}
+              className="mt-1 w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+            {errors.budget && <p className="text-red-500 text-sm mt-1">{errors.budget}</p>}
+          </div>
 
-    {/* Aperçu à droite */}
-    {Object.keys(preview).length > 0 && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50"
-      >
-        <h3 className="text-lg font-semibold mb-4">Aperçu</h3>
-        <ul className="text-sm space-y-2">
-          <li><strong>Description:</strong> {preview.description}</li>
-          <li><strong>Type:</strong> {preview.type_de_service}</li>
-          <li><strong>Priorité:</strong> {preview.priorité}</li>
-          <li><strong>Budget:</strong> {preview.budget} €</li>
-          <li><strong>Date limite:</strong> {preview.date_limite && format(parseISO(preview.date_limite), 'dd/MM/yyyy')}</li>
-          <li><strong>Adresse:</strong> {preview.adresse_details}</li>
-        </ul>
-      </motion.div>
-    )}
-  </div>
-</div>
+          <div>
+            <label htmlFor="date_limite" className="block font-medium text-gray-700">Date début</label>
+            <input
+              type="date"
+              id="date_limite"
+              name="date_limite"
+              value={formData.date_limite}
+              onChange={handleChange}
+              className="mt-1 w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+            {errors.date_limite && <p className="text-red-500 text-sm mt-1">{errors.date_limite}</p>}
+          </div>
 
+          <div>
+            <label htmlFor="adresse_details" className="block font-medium text-gray-700">Adresse</label>
+            <input
+              type="text"
+              id="adresse_details"
+              name="adresse_details"
+              value={formData.adresse_details}
+              onChange={handleChange}
+              className="mt-1 w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Cliquez sur la carte ou saisissez manuellement"
+            />
+          </div>
+
+          <div>
+            <MapPicker
+              onSelect={(adresse) => {
+                setFormData(prev => ({ ...prev, adresse_details: adresse }));
+              }}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="image_path" className="block font-medium text-gray-700">Image (facultatif)</label>
+            <input
+              type="file"
+              id="image_path"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-1 w-full"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="fichiers" className="block font-medium text-gray-700">Fichier (facultatif)</label>
+            <input
+              type="file"
+              id="fichiers"
+              onChange={handleFileChange}
+              className="mt-1 w-full"
+            />
+            {fileNames.length > 0 && (
+              <ul className="mt-2 text-sm text-gray-700 space-y-1">
+                {fileNames.map((name, idx) => (
+                  <li key={idx}>📎 {name}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {loading ? 'Envoi en cours...' : 'Envoyer la demande'}
+        </button>
+
+        {success && <p className="text-green-600 font-semibold mt-3">Service créé avec succès !</p>}
+      </form>
+    </div>
   );
 };
 

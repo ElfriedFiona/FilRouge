@@ -107,7 +107,7 @@ export default function AvisNotesContent() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <FaUser className="text-gray-500" />
-                    <span className="font-semibold">{avis.client?.user?.name || 'Client inconnu'}</span>
+                    <span className="font-semibold">{avis.user?.name || 'Client inconnu'}</span>
                   </div>
                   <div className={`font-bold ${getNoteColor(avis.note)} flex items-center gap-1`}>
                     <FaStar /> {avis.note}/5
@@ -173,7 +173,7 @@ export default function AvisNotesContent() {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <FaUser className="text-gray-500" />
-                        <span className="font-semibold">{avis.client?.user?.name || 'Client inconnu'}</span>
+                        <span className="font-semibold">{avis.artisan?.user?.name || 'Client inconnu'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button onClick={() => handleEditClick(avis)} className="text-blue-600 hover:text-blue-800">

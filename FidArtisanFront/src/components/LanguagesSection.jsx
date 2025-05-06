@@ -11,7 +11,7 @@ export function LanguagesSection({ languages, artisanId, isOwner }) {
   };
 
   return (
-    <div className="section">
+    <div className="bg-white p-4 rounded shadow">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Langues</h2>
         {isOwner && !editing && <button onClick={() => setEditing(true)}>Modifier</button>}

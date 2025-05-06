@@ -9,7 +9,7 @@ export default function Sidebar({ activeContent, setActiveContent }) {
 
   const menuItems = [
     { label: "Dashboard", icon: <FaHome className="w-5 h-5 text-blue-500" /> },
-    { label: "Utilisateur", icon: <FaUser className="w-5 h-5 text-blue-500" /> },
+    { label: "Mon Profil", icon: <FaUser className="w-5 h-5 text-blue-500" /> },
     { label: "Calendrier", icon: <FaCalendar className="w-5 h-5 text-blue-500" /> },
     { label: "Demandes", icon: <FileText className="w-5 h-5 text-blue-500" /> },
     { label: "Annonces", icon: <Speaker className="w-5 h-5 text-blue-500" /> },

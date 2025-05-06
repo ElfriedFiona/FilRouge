@@ -82,6 +82,17 @@ class ServiceController extends Controller
     return response()->json($service);
 }
 
+    public function showByUser($userId)
+{
+    $service = Service::where('user_id', $userId)
+                ->whereNotIn('statut', ['terminé','en attente']) // Filtre ici
+                ->with('artisan.user') // si tu veux le nom du client par ex.
+                ->latest()
+                ->get();
+
+    return response()->json($service);
+}
+
 
     /**
      * Update the specified resource in storage.
@@ -122,7 +133,7 @@ class ServiceController extends Controller
         $service->delete();
         return response()->json(['message' => 'Service supprimé avec succès']);
     }
-
+ 
     public function getByUser($userId)
     {
         $services = Service::where('user_id', $userId)->with('artisan.user','avisEtNote.user','avisParArtisans.artisan.user')->get();

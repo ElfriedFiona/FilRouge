@@ -71,11 +71,12 @@ const AuthForm = () => {
       
       // Redirection selon le rôle
       if (user.role === "admin") {
-        navigate("/admin");
+        navigate("/admin", { replace: true });
       } else if (user.role === "client") {
-        navigate("/client");
+        // navigate("/client");
+        navigate(-1, { replace: true });
       } else {
-        navigate(`/artisandash/${user.artisan.id}`);
+        navigate(`/artisandash/${user.artisan.id}`, { replace: true });
       }
     } catch (err) {
       console.error("Erreur login:", err.response);
