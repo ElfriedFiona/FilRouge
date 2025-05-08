@@ -460,7 +460,7 @@ const AlertButton = ({ bellActive, setBellActive }) => {
                     <span className="text-xs text-gray-500">
                       Statut: <span className="text-blue-500">{notification.statut}</span>
                     </span>
-                    <Link to={`/services/${notification.id}`} className="text-xs text-blue-500 hover:underline">
+                    <Link to={`/serviceclient`} className="text-xs text-blue-500 hover:underline">
                       Voir détails
                     </Link>
                   </div>
@@ -470,7 +470,7 @@ const AlertButton = ({ bellActive, setBellActive }) => {
           </ul>
           {notifications.length > 5 && (
             <div className="py-2 px-4 text-center border-t">
-              <Link to="/notifications" className="text-xs text-blue-500 hover:underline">
+              <Link to="/serviceclient" className="text-xs text-blue-500 hover:underline">
                 Voir toutes les notifications
               </Link>
             </div>

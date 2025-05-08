@@ -20,17 +20,6 @@ export default function Header({setActiveContent, setSearchResults}) {
   const debounceRef = useRef(null);
   const navigate = useNavigate();
 
-  const logout = () => {
-    api.post('/logout')
-      .then(() => {
-        localStorage.clear();
-        navigate('/login', { replace: true });
-      })
-      .catch((error) => {
-        console.error('Erreur lors de la déconnexion:', error);
-      });
-  };
-
   useEffect(() => {
     api.get('/villes')
       .then(({ data }) => setVilles(data))
@@ -66,9 +55,13 @@ export default function Header({setActiveContent, setSearchResults}) {
   };
 
   useEffect(() => {
-    api.get('/profile')
-      .then(res => setProfile(res.data))
-      .catch(err => console.error("Erreur lors de la récupération du profil :", err));
+    let isMounted = true;
+  api.get('/profile')
+    .then(res => {
+      if (isMounted) setProfile(res.data);
+    })
+    .catch(err => console.error("Erreur lors de la récupération du profil :", err));
+  return () => { isMounted = false };
   }, []);
 
   useEffect(() => {
@@ -108,9 +101,24 @@ export default function Header({setActiveContent, setSearchResults}) {
     if (profile?.artisan?.id) {
       fetchNotifications();
       const interval = setInterval(fetchNotifications, 10000);
+      window.__notifInterval = interval; // accessible au logout
       return () => clearInterval(interval);
     }
   }, [profile]);
+
+  const logout = () => {
+    // Supprimer l'interval de notification si nécessaire
+    clearInterval(window.__notifInterval);
+  
+    api.post('/logout')
+      .then(() => {
+        localStorage.clear();
+        navigate('/login', { replace: true });
+      })
+      .catch((error) => {
+        console.error('Erreur lors de la déconnexion:', error);
+      });
+  };
 
   return (
     <header className="fixed top-0 left-0 w-full bg-white h-16 flex items-center justify-between px-6 shadow z-50">

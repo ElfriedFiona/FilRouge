@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FaPhoneAlt,
   FaEnvelope,
@@ -7,8 +7,45 @@ import {
   FaFacebook,
   FaInstagram,
 } from 'react-icons/fa';
-
+import api from '../services/api';
+ 
 const ContactUs = () => {
+
+  const [formData, setFormData] = useState({
+    nom: '',
+    prenom: '',
+    email: '',
+    telephone: '',
+    titre: '',
+    message: '',
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await api.get('/profile', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // ou la manière dont tu stockes ton token
+        },
+      });
+      const user = response.data;
+  
+      const payload = {
+        message: formData.message,
+        // si le back-end demande user_id, tu peux l'ajouter ici
+      };
+      await api.post('/contact', formData);
+      alert('Message envoyé avec succès.');
+    } catch (error) {
+      alert('Erreur lors de l’envoi.');
+    }
+  };
+  
+
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 my-10">
       <h2 className="text-3xl font-bold text-blue-600 mb-2">Contactez Nous</h2>
@@ -46,20 +83,24 @@ const ContactUs = () => {
 
         {/* Formulaire */}
         <div className="md:w-2/3 p-8">
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="flex flex-col md:flex-row md:space-x-6">
               <div className="flex-1">
                 <label className="block mb-2 text-sm font-medium">Nom</label>
                 <input
+                name='nom'
                   type="text"
                   className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                  onChange={handleChange}
                 />
               </div>
               <div className="flex-1 mt-4 md:mt-0">
                 <label className="block mb-2 text-sm font-medium">Prenom</label>
                 <input
+                name='prenom'
                   type="text"
                   className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                  onChange={handleChange}
                 />
               </div>
             </div>
@@ -68,15 +109,19 @@ const ContactUs = () => {
               <div className="flex-1">
                 <label className="block mb-2 text-sm font-medium">Email</label>
                 <input
+                name='email'
                   type="email"
                   className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                  onChange={handleChange}
                 />
               </div>
               <div className="flex-1 mt-4 md:mt-0">
                 <label className="block mb-2 text-sm font-medium">Numéro de Téléphone</label>
                 <input
-                  type="text"
+                name='telephone'
+                  type="number"
                   className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                  onChange={handleChange}
                 />
               </div>
             </div>
@@ -84,14 +129,18 @@ const ContactUs = () => {
             <div>
               <label className="block mb-2 text-sm font-medium">Sujet du Message</label>
               <input
+              name='titre'
                 type="text"
                 className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                onChange={handleChange}
               />
             </div>
 
             <div>
               <label className="block mb-2 text-sm font-medium">Message</label>
               <textarea
+              name='message'
+              onChange={handleChange}
                 rows="4"
                 className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
               />

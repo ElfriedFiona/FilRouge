@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -10,15 +11,19 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     // ✅ Enregistrement
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed|min:6',
-            'role' => 'required|in:client,artisan',
-        ]);
 
+public function register(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users',
+        'password' => 'required|confirmed|min:6',
+        'role' => 'required|in:client,artisan',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -27,7 +32,6 @@ class AuthController extends Controller
             'etat' => 'actif',
         ]);
 
-        // Créer le profil en fonction du rôle
         if ($request->role === 'client') {
             $user->client()->create([
                 'user_id' => $user->id,
@@ -51,11 +55,21 @@ class AuthController extends Controller
             ]);
         }
 
+        DB::commit();
+
         // Envoi de l'email de vérification
         $user->sendEmailVerificationNotification();
 
         return response()->json(['message' => 'Compte créé. Veuillez vérifier votre email.'], 201);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Une erreur est survenue lors de l’enregistrement.',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 
     // ✅ Connexion
     public function login(Request $request)

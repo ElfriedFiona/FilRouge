@@ -29,6 +29,7 @@ const HeroSection = () => {
   const [villes, setVilles]   = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSug, setLoadingSug]   = useState(false);
+  const [searchError, setSearchError] = useState('');
   const debounceRef = useRef(null);
   
    // Charge les villes
@@ -57,80 +58,91 @@ const HeroSection = () => {
 
   const handleSearch = (searchQ = q, searchVille = ville) => {
     if (!searchQ.trim()) return;
+    setSearchError(''); // Réinitialise l'erreur à chaque nouvelle recherche
     api.get('/artisans/search', { params: { q: searchQ, ville: searchVille } })
-       .then(({ data }) => navigate('/resultats', { state: { artisans: data } }))
-       .catch(console.error);
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          navigate('/resultats', { state: { artisans: data } });
+        } else {
+          setSearchError('Aucun artisan trouvé pour votre recherche.'); // Définit le message d'erreur
+        }
+      })
+      .catch(error => {
+        console.error('Erreur lors de la recherche :', error);
+        setSearchError('Une erreur est survenue lors de la recherche.'); // Message d'erreur générique
+      });
   };
+
 
   const artisanImages = [{
     src: menuisier_ebeniste,
-    title: 'Ébénisterie',
+    title: 'Ébéniste',
     alt: 'Ébéniste travaillant le bois'
   }, {
     src: vannier,
-    title: 'artisan_vannier',
+    title: 'Vannier',
     alt: '/artisan_vannier'
   },
   {
     src: menuisier,
-    title: 'menuiserie',
+    title: 'Menuisier',
     alt: 'menuisier'
   }, {
     src: rotin,
-    title: 'fabricant_rotin',
+    title: 'Fabricant de rotin',
     alt: 'fabricant_rotin'
   }, {
     src: ferronier,
-    title: 'ferronier',
+    title: 'Ferronnier art',
     alt: 'ferronier'
   },
   {
     src: plombier,
-    title: 'Plomberie',
+    title: 'Plombier (installateur sanitaire)',
     alt: 'plombier'
   }, {
     src: sculpteur,
-    title: 'Sculpteur',
+    title: 'Sculpteur / décorateur sur tous matériaux',
     alt: 'sculpteur'
   }, {
     src: ceramiste,
-    title: 'Ceramiste',
+    title: 'Ceramiste (Potier)',
     alt: 'Ceramiste'
   }, {
     src: maroquinier,
-    title: 'maroquinier',
+    title: 'Maroquinier',
     alt: 'maroquinier'
   }, {
     src: sparterie,
-    title: 'Sparterie',
+    title: 'Spartier',
     alt: 'Sparterie'
   }, {
     src: bougies,
-    title: 'fabricant_bougiesartisanales',
+    title: 'Fabricant de bougies',
     alt: 'fabricant_bougiesartisanales'
   }, {
     src: bambou,
-    title: 'fabricants Objets en bambou',
+    title: 'Fabricant objets en bambou',
     alt: 'fabricants_bambou'
   }, {
     src: brodeur,
-    title: 'Broderie',
+    title: 'Brodeur',
     alt: 'brodeur'
   }, {
     src: canalisateur,
-    title: 'canalisateur d\'eau',
+    title: 'Canalisateur',
     alt: 'canalisateur'
   }, {
     src: portraitiste,
-    title: 'Portraitiste',
+    title: 'Peintre-décorateur / portraitiste', // Regroupement
     alt: 'portraitiste'
   }, {
     src: foreur,
-    title: 'Foreur',
+    title: 'Foreur / installateur de puits d’eau',
     alt: 'foreur'
   }, {
     src: paves,
-    title: 'fabricants_paves',
+    title: 'Fabricant de pavés',
     alt: 'fabricants_paves'
   }
 ];
@@ -213,6 +225,12 @@ const HeroSection = () => {
             </div>
           </div>
         </div>
+        
+        {searchError && (
+          <div className="text-center text-red-500 mb-4">
+            {searchError}
+          </div>
+        )}
 
         <div className="relative z-0">
           <div ref={scrollRef} className="flex space-x-6 overflow-x-auto pb-8 cursor-grab scrollbar-hide z-0">

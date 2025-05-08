@@ -253,8 +253,8 @@ import React, { useEffect, useState } from 'react';
                   <label htmlFor="sexe" className="block text-gray-700 text-sm font-bold mb-1">Sexe</label>
                   <select id="sexe" name="sexe" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value={tempBasicInfo.sexe || ''} onChange={handleInputChange}>
                     <option value="">Sélectionner</option>
-                    <option value="homme">Homme</option>
-                    <option value="femme">Femme</option>
+                    <option value="h">Homme</option>
+                    <option value="f">Femme</option>
                   </select>
                 </div>
               </div>
@@ -288,7 +288,7 @@ import React, { useEffect, useState } from 'react';
       <ProjectsSection isOwner={isOwner} projects={profile.projets} artisanId={parseInt(id)} />
       <SkillsSection isOwner={isOwner} skills={profile.competences} artisanId={parseInt(id)} />
       <ExperienceSection isOwner={isOwner} experiences={profile.experiences} artisanId={parseInt(id)}/>
-      <LanguagesSection isOwner={isOwner} languages={artisan._mappedLanguages} />
+      <LanguagesSection isOwner={isOwner} languages={artisan._mappedLanguages} artisanId={parseInt(id)} />
       <ReviewsSection isOwner={isOwner} reviews={profile.reviews} />
 
       {!isOwner && (

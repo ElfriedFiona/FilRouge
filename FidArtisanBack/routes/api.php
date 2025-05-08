@@ -20,6 +20,7 @@ use App\Http\Controllers\ProjetRealiserController;
 use App\Http\Controllers\ServiceProposerController;
 use App\Http\Controllers\ArtisanController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CalendarEventController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
@@ -75,9 +76,12 @@ Route::post('/email/resend', function (Request $request) {
 
 Route::get('/artisans/search', [ArtisanController::class, 'search']);
 Route::get('/artisans/{artisan}/profil', [ArtisanController::class, 'showFullProfile']);
-Route::get('/artisan/{artisanId}/languages', [ArtisanController::class, 'getLanguages']);
+// Route::get('/artisan/{artisanId}/languages', [ArtisanController::class, 'getLanguages']);
 Route::get('/villes', [VilleController::class, 'index']);
+Route::post('/contact', [ContactController::class, 'envoyerMessage']);
 
+
+Route::middleware('auth:sanctum')->get('/users/clients', [UserController::class, 'getAllClients']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/users', [UserController::class, 'index']);
@@ -86,8 +90,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/artisans',[UserController::class, 'listArtisans']);
     Route::get('/artisans/{id}',[UserController::class, 'showArtisan']);
 
-    Route::put('/users/{id}/etat',  [UserController::class, 'changeEtat'])
-         ->middleware('can:changeEtat,App\Models\User');
+    Route::put('/users/{id}/etat',  [UserController::class, 'changeEtat']);
+         
 
     Route::delete('/users/{id}',    [UserController::class, 'destroy'])
          ->middleware('can:delete,App\Models\User');

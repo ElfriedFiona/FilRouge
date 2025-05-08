@@ -387,4 +387,61 @@ class UserController extends Controller
   return response()->json(['message' => 'Description mise à jour avec succès.']);
  }
 
+  // Admin : change l'état d'un utilisateur (actif/inactif)
+  public function changeEtat(Request $request, $id)
+{
+    // Vérification si l'utilisateur existe
+    $user = User::find($id);
+    if (!$user) {
+        return response()->json(['error' => 'Utilisateur non trouvé'], 404);
+    }
+
+    // Mise à jour de l'état de l'utilisateur
+    try {
+        $user->etat = $request->input('etat');  // Vérifiez que 'etat' existe dans le corps de la requête
+        $user->save();
+
+        return response()->json(['message' => 'État mis à jour avec succès']);
+    } catch (\Exception $e) {
+        // Log de l'erreur si nécessaire
+        \Log::error('Erreur lors de la mise à jour de l\'état de l\'utilisateur : ' . $e->getMessage());
+
+        return response()->json(['error' => 'Erreur interne du serveur'], 500);
+    }
+}
+
+
+
+
+  public function getAllClients()
+{
+    $clients = User::whereHas('client')
+        ->with(['client.ville'])
+        ->get()
+        ->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'created_at' => $user->created_at,
+                'etat' => $user->etat,
+
+                'client' => [
+                    'photo' => $user->client->photo,
+                    'telephone' => $user->client->telephone,
+                    'ville_id' => $user->client->ville_id,
+                    'ville' => $user->client->ville ? $user->client->ville->nom : null,
+                    'sexe' => $user->client->sexe,
+                    'description' => $user->client->description,
+                    'langue' => $user->client->langue,
+                ]
+            ];
+        });
+
+    return response()->json($clients);
+}
+
+
+
+
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pencil, MapPin, Phone, Mail, Camera } from 'lucide-react';
+import { Pencil, MapPin, Phone, Mail, Camera, Star } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -23,8 +23,11 @@ export function ProfilePage() {
     },
     favorites: [],
     avisParArtisans: [],
-    services: [] // Nouvelle propriété pour les services en cours
+    services: [] // Propriété pour les services en cours
   });
+  
+  // Liste filtrée des artisans bien notés (notes 4-5)
+  const [topRatedArtisans, setTopRatedArtisans] = useState([]);
   
   // Formulaire pour l'édition
   const [formData, setFormData] = useState({
@@ -57,6 +60,28 @@ export function ProfilePage() {
     fetchUserData(profileId);
     fetchCities();
   }, [userId]);
+
+  // Filtrer les artisans avec des notes de 4 et 5
+  useEffect(() => {
+    if (userData.avisParArtisans && userData.avisParArtisans.length > 0) {
+      const highRatedArtisans = userData.avisParArtisans
+        .filter(review => review.note >= 4)
+        .map(review => ({
+          id: review.artisan.id,
+          name: review.artisan.name,
+          profession: review.artisan.profession || "Artisan",
+          photo: review.artisan.photo,
+          note: review.note
+        }));
+        
+      // Éliminer les doublons par ID d'artisan
+      const uniqueArtisans = Array.from(
+        new Map(highRatedArtisans.map(item => [item.id, item])).values()
+      );
+      
+      setTopRatedArtisans(uniqueArtisans);
+    }
+  }, [userData.avisParArtisans]);
 
   // Charger le profil complet avec l'endpoint users/{id}
   const fetchUserData = async (id) => {
@@ -160,6 +185,17 @@ export function ProfilePage() {
     return `http://127.0.0.1:8000/storage/uploads/${userData.client.photo}`;
   };
 
+  // Obtenir l'URL de la photo d'un artisan
+  const getArtisanPicture = (photo) => {
+    if (!photo) return 'https://via.placeholder.com/60';
+    
+    if (photo.startsWith('http')) {
+      return photo;
+    }
+    
+    return `http://127.0.0.1:8000/storage/uploads/${photo}`;
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -179,7 +215,7 @@ export function ProfilePage() {
     <div className="container mx-auto p-4">
       {/* En-tête du profil */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-        <div className="h-32  bg-blue-400  relative">
+        <div className="h-32 bg-blue-400 relative">
           {isOwner && (
             <button 
               className="absolute top-2 right-2 bg-white p-2 rounded-full shadow-md"
@@ -439,26 +475,37 @@ export function ProfilePage() {
         )}
       </div>
       
-      {/* Artisans Favoris */}
+      {/* Artisans Favoris (modifié pour afficher les artisans bien notés) */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Artisans Favoris</h2>
+        <p className="text-sm text-gray-500 mb-4">Artisans avec lesquels vous avez eu une excellente expérience (notes de 4 ou 5).</p>
         
-        {userData.favorites && userData.favorites.length > 0 ? (
+        {topRatedArtisans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {userData.favorites.map((favorite) => (
-              <div key={favorite.id} className="bg-gray-50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+            {topRatedArtisans.map((artisan) => (
+              <div key={artisan.id} className="bg-gray-50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center">
                   <img
-                    src={favorite.profilePicture || 'https://via.placeholder.com/60'}
-                    alt={favorite.name}
+                    src={getArtisanPicture(artisan.photo)}
+                    alt={artisan.name}
                     className="w-16 h-16 rounded-full object-cover mr-4"
                   />
                   <div>
-                    <h3 className="font-medium">{favorite.name}</h3>
-                    <p className="text-sm text-gray-600">{favorite.profession}</p>
+                    <h3 className="font-medium">{artisan.name}</h3>
+                    <p className="text-sm text-gray-600">{artisan.profession}</p>
+                    <div className="flex items-center mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          size={14}
+                          className={`${i < artisan.note ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                        />
+                      ))}
+                      <span className="ml-1 text-sm text-gray-600">({artisan.note}/5)</span>
+                    </div>
                     <div className="mt-2">
                       <a
-                        href={`/artisans/${favorite.id}`}
+                        href={`/artisans/${artisan.id}`}
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
                         Voir le profil
@@ -471,7 +518,7 @@ export function ProfilePage() {
           </div>
         ) : (
           <div className="text-center py-4">
-            <p className="text-gray-500">Aucun artisan favori pour le moment.</p>
+            <p className="text-gray-500">Aucun artisan recommandé pour le moment.</p>
           </div>
         )}
       </div>
@@ -485,14 +532,9 @@ export function ProfilePage() {
             {userData.avisParArtisans.map((review, index) => (
               <div key={index} className="bg-gray-50 rounded-lg p-4 shadow-sm">
                 <div className="flex items-start">
-                  {/* <img
-                    src={review.artisan.photo || 'https://via.placeholder.com/40'}
-                    alt={review.artisan.name}
-                    className="w-10 h-10 rounded-full object-cover mr-4"
-                  /> */}
                   <div className="w-8 h-8 mr-3 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                {review.artisan.name.charAt(0)}
-              </div>
+                    {review.artisan.name.charAt(0)}
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium">{review.artisan.name}</h3>
@@ -502,14 +544,11 @@ export function ProfilePage() {
                     </div>
                     <div className="mt-1 flex items-center">
                       {[...Array(5)].map((_, i) => (
-                        <svg 
+                        <Star 
                           key={i} 
-                          className={`w-4 h-4 ${i < review.note ? 'text-yellow-400' : 'text-gray-300'}`} 
-                          fill="currentColor" 
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
+                          size={14}
+                          className={`${i < review.note ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                        />
                       ))}
                       <span className="ml-2 text-sm text-gray-600">({review.note}/5)</span>
                     </div>

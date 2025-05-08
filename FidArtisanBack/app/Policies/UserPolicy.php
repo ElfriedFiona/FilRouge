@@ -73,11 +73,13 @@ class UserPolicy
      * @param  \App\Models\User  $model
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function changeEtat(User $authUser, User $user)
-    {
-        return $authUser->role === 'admin'
-            && $authUser->id !== $user->id;
-    }
+    public function changeEtat(User $user)
+{
+    $authUser = auth()->user();
+
+    return $authUser && $authUser->role === 'admin' && $authUser->id !== $user->id;
+}
+
 
     /**
      * Supprimer un utilisateur.

@@ -48,3 +48,9 @@ Route::get('/uploads/{filename}', function ($filename) {
             ->header('Content-Type', $type)
             ->header('Access-Control-Allow-Origin', '*');
 });
+
+Route::get('/reset-password/{token}', function ($token) {
+    $email = request('email');
+    // Redirection vers la route frontend React avec token et email
+    return redirect("http://localhost:5173/reset-password?token=$token&email=$email");
+});

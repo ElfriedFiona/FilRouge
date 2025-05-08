@@ -154,18 +154,10 @@ public function showFullProfile(Artisan $artisan)
 public function search(Request $request)
 {
     $keyword = $request->query('q');
-    $ville   = $request->query('ville');
 
-    $query = Artisan::with(['user','profession','ville','avis','services'])
-        ->when($keyword, fn($q) => 
-            $q->whereHas('user', fn($q2)=> $q2->where('name','like',"%{$keyword}%"))
-              ->orWhereHas('profession', fn($q2)=> $q2->where('nom','like',"%{$keyword}%"))
-        )
-        ->when($ville, fn($q)=> 
-            $q->whereHas('ville', fn($q2)=> $q2->where('nom','like',"%{$ville}%"))
-        );
-
-    $artisans = $query->get();
+    $artisans = Artisan::whereHas('profession', function ($query) use ($keyword) {
+        $query->where('nom', $keyword); // Recherche exacte pour tester
+    })->with(['user','profession','ville','avis','services'])->get();
 
     if ($artisans->isEmpty()) {
         return response()->json(['message' => 'Aucun artisan trouvé.'], 404);

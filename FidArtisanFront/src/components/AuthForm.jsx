@@ -195,6 +195,13 @@ const AuthForm = () => {
     value={loginForm.password}
     onChange={handleLoginChange}
   />
+
+<p className="text-sm mt-2">
+  <a href="/forgot-password" className="text-[#00203f] underline">
+    Mot de passe oublié ?
+  </a>
+</p>
+
               <AuthButton>Se connecter</AuthButton>
               <p className="text-sm mt-4 md:hidden">
                 Pas encore de compte ?{" "}

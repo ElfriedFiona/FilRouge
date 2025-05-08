@@ -16,6 +16,9 @@ import  ArtisanProfile  from "./pages/ProfileArtisan";
 import RequestServicePage from "./pages/RequestServicePage";
 import ArtisanDashboard from "./pages/Artisan";
 import { PublicClientProfile } from "./components/PublicClientProfile";
+import Dashboard from "./components/Dashboard/Dashboard";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
   return (
@@ -36,11 +39,13 @@ function App() {
         <Route path="/serviceclient" element={<RequestServicePage/>} />
         {/* <Route path="/artisandash/:id" element={<ArtisanDashboard/>} /> */}
         <Route path="/client/:id" element={<PublicClientProfile />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/admin"
           element={
             <PrivateRoute roles={['admin']}>
-              <AdminDashboard />
+              <Dashboard />
             </PrivateRoute>
           }
         />
