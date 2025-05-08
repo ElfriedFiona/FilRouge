@@ -112,7 +112,7 @@ NPM
 Étapes :
 Backend Laravel
 bash
-git clone https://github.com/votre-utilisateur/artisanconnect.git
+git clone https://github.com/ElfriedFiona/FilRouge.git
 cd FidArtisanBack
 cp .env.example .env
 composer install
@@ -122,7 +122,7 @@ php artisan storage:link
 php artisan serve
 Frontend React
 bash
-cd frontend
+cd FidArtisanFront
 npm install
 npm run dev
 Structure des rôles
